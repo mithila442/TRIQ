@@ -20,13 +20,13 @@ def val_main(args):
         imagenet_pretrain = False
 
     val_folders = [
-                    r'.\database\val\koniq_normal',
-                   r'.\database\val\koniq_small',
+                    r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\val\koniq_normal',
+                   r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\val\koniq_small',
                    # r'.\database\train\live',
-                   r'.\database\val\live']
+                   r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\val\live']
 
-    koniq_mos_file = r'.\database\koniq10k_images_scores.csv'
-    live_mos_file = r'.\database\live_wild\live_mos.csv'
+    koniq_mos_file = r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\koniq10k_images_scores.csv'
+    live_mos_file = r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\live_mos.csv'
 
     image_scores = get_image_scores(koniq_mos_file, live_mos_file, using_single_mos=using_single_mos)
     test_image_file_groups, test_score_groups = get_image_score_from_groups(val_folders, image_scores)
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     args = {}
     args['n_quality_levels'] = 5
     args['backbone'] = 'resnet50'
-    args['weights'] = r'.\TRIQ.h5'
+    args['weights'] = r'.\database\results_triq\triq_conv2D_all\triq_conv2D_all_distribution\1_1.5111_1.4741.h5'
 
     t_start = time.time()
     val_main(args)

@@ -49,8 +49,8 @@ def do_split(original_image_folder, target_image_folder, mos_file, database='liv
 
 def random_split():
     # Specify the image folders for KonIQ-10 database and LIVE-wild database, suppose they are stored separately.
-    koniq_image_folder = r''
-    live_image_folder = r''
+    koniq_image_folder = r'E:\DS and ML materials\Fall 2023 docs\KonIQ'
+    live_image_folder = r'E:\DS and ML materials\Fall 2023 docs\LIVE\ChallengeDB_release\Images'
 
     # Specify the MOS files for KonIQ-10 database and LIVE-wild database, respectively.
     # Now the image files will be written to the current database folder, then can be used in model training

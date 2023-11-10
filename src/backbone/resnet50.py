@@ -214,10 +214,10 @@ def ResNet50(inputs,
 
 
 if __name__ == '__main__':
-    weights = r'.\pretrained_weights\resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
+    weights = r'E:\DS and ML materials\Fall 2023 docs\resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
 
-    gpus = tf.config.experimental.list_physical_devices('GPU')
-    tf.config.experimental.set_visible_devices(gpus[1], 'GPU')
+    # gpus = tf.config.experimental.list_physical_devices('GPU')
+    # tf.config.experimental.set_visible_devices(gpus[1], 'GPU')
 
     input_shape = (None, None, 3)
     inputs = layers.Input(shape=input_shape)

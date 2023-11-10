@@ -33,9 +33,9 @@ def remove_non_best_weights(result_folder, best_weights_files):
 
 
 def train_main(args):
-    if args['multi_gpu'] == 0:
-        gpus = tf.config.experimental.list_physical_devices('GPU')
-        tf.config.experimental.set_visible_devices(gpus[args['gpu']], 'GPU')
+    # if args['multi_gpu'] == 0:
+    #     gpus = tf.config.experimental.list_physical_devices('GPU')
+    #     tf.config.experimental.set_visible_devices(gpus[args['gpu']], 'GPU')
 
     result_folder = args['result_folder']
     model_name = 'triq_conv2D_all'
@@ -153,39 +153,39 @@ def train_main(args):
     # model.save(os.path.join(result_folder, model_name + '.h5'))
     # plot_history(model_history, result_folder, model_name)
 
-    best_weights_file = identify_best_weights(result_folder, model_history.history, callbacks[3].best)
-    remove_non_best_weights(result_folder, [best_weights_file])
+    #best_weights_file = identify_best_weights(result_folder, model_history.history, callbacks[3].best)
+    #remove_non_best_weights(result_folder, [best_weights_file])
 
     # do fine-tuning
-    if args['do_finetune'] and best_weights_file:
-        print('Finetune...')
-        del (callbacks[-1])
-        model.load_weights(best_weights_file)
-        finetune_lr = 1e-6
-        if args['lr_schedule']:
-            warmup_lr_finetune = WarmUpCosineDecayScheduler(learning_rate_base=finetune_lr,
-                                                            total_steps=total_train_steps,
-                                                            warmup_learning_rate=0.0,
-                                                            warmup_steps=warmup_steps,
-                                                            hold_base_rate_steps=10 * train_steps,
-                                                            verbose=1)
-            callbacks.append(warmup_lr_finetune)
-        finetune_optimizer = Adam(finetune_lr)
-        model.compile(loss=loss, optimizer=finetune_optimizer, metrics=[metrics])
+    # if args['do_finetune'] and best_weights_file:
+    #     print('Finetune...')
+    #     del (callbacks[-1])
+    #     model.load_weights(best_weights_file)
+    #     finetune_lr = 1e-6
+    #     if args['lr_schedule']:
+    #         warmup_lr_finetune = WarmUpCosineDecayScheduler(learning_rate_base=finetune_lr,
+    #                                                         total_steps=total_train_steps,
+    #                                                         warmup_learning_rate=0.0,
+    #                                                         warmup_steps=warmup_steps,
+    #                                                         hold_base_rate_steps=10 * train_steps,
+    #                                                         verbose=1)
+    #         callbacks.append(warmup_lr_finetune)
+    #     finetune_optimizer = Adam(finetune_lr)
+    #     model.compile(loss=loss, optimizer=finetune_optimizer, metrics=[metrics])
 
-        finetune_model_history = model.fit(x=train_generator,
-                                  epochs=args['epochs'],
-                                  steps_per_epoch=train_steps,
-                                  validation_data=validation_generator,
-                                  validation_steps=validation_steps,
-                                  verbose=1,
-                                  shuffle=False,
-                                  callbacks=callbacks,
-                                  initial_epoch=args['initial_epoch'],
-                                  )
+    #     finetune_model_history = model.fit(x=train_generator,
+    #                               epochs=args['epochs'],
+    #                               steps_per_epoch=train_steps,
+    #                               validation_data=validation_generator,
+    #                               validation_steps=validation_steps,
+    #                               verbose=1,
+    #                               shuffle=False,
+    #                               callbacks=callbacks,
+    #                               initial_epoch=args['initial_epoch'],
+    #                               )
 
-        best_weights_file_finetune = identify_best_weights(result_folder, finetune_model_history.history, callbacks[3].best)
-        remove_non_best_weights(result_folder, [best_weights_file, best_weights_file_finetune])
+    #     best_weights_file_finetune = identify_best_weights(result_folder, finetune_model_history.history, callbacks[3].best)
+    #     remove_non_best_weights(result_folder, [best_weights_file, best_weights_file_finetune])
 
 
 if __name__ == '__main__':
@@ -200,27 +200,27 @@ if __name__ == '__main__':
     args['backbone'] = 'resnet50'
 
     args['train_folders'] = [
-        r'.\database\train\koniq_normal',
-        r'.\database\train\koniq_small',
-        r'.\database\train\live']
+        r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\train\koniq_normal',
+        r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\train\koniq_small',
+        r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\train\live']
     args['val_folders'] = [
-        r'.\database\val\koniq_normal',
-        r'.\database\val\koniq_small',
-        r'.\database\val\live']
-    args['koniq_mos_file'] = r'.\database\koniq10k_images_scores.csv'
-    args['live_mos_file'] = r'.\database\live_wild\live_mos.csv'
+        r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\val\koniq_normal',
+        r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\val\koniq_small',
+        r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\val\live']
+    args['koniq_mos_file'] = r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\koniq10k_images_scores.csv'
+    args['live_mos_file'] = r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\live_mos.csv'
 
     args['initial_epoch'] = 0
 
-    args['lr_base'] = 1e-4/2
+    args['lr_base'] = 0.01
     args['lr_schedule'] = True
-    args['batch_size'] = 8
-    args['epochs'] = 120
+    args['batch_size'] = 15
+    args['epochs'] = 10
 
     args['image_aug'] = True
     # args['weights'] = r'.\pretrained_weights\vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5'
-    args['weights'] = r'.\pretrained_weights\resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
+    args['weights'] = r'E:\DS and ML materials\Fall 2023 docs\resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
 
-    args['do_finetune'] = True
+    #args['do_finetune'] = True
 
     train_main(args)

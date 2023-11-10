@@ -56,8 +56,8 @@ def create_triq_model(n_quality_levels,
 
 
 if __name__ == '__main__':
-    gpus = tf.config.experimental.list_physical_devices('GPU')
-    tf.config.experimental.set_visible_devices(gpus[0], 'GPU')
+    # gpus = tf.config.experimental.list_physical_devices('GPU')
+    # tf.config.experimental.set_visible_devices(gpus[0], 'GPU')
     input_shape = [None, None, 3]
     # input_shape = [768, 1024, 3]
     # input_shape = [500, 500, 3]
