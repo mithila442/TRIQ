@@ -151,7 +151,6 @@ def ResNet50(inputs,
     """
     # global backend, layers, models, keras_utils
     # backend, layers, models, keras_utils = get_submodules_from_kwargs(kwargs)
-
     # Determine proper input shape
     bn_axis = 3
 
@@ -214,7 +213,7 @@ def ResNet50(inputs,
 
 
 if __name__ == '__main__':
-    weights = r'E:\DS and ML materials\Fall 2023 docs\resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
+    weights = r'E:\Fall 2023 docs\resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
 
     # gpus = tf.config.experimental.list_physical_devices('GPU')
     # tf.config.experimental.set_visible_devices(gpus[1], 'GPU')

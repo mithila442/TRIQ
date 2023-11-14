@@ -2,7 +2,7 @@ import os
 import numpy as np
 import glob
 import tensorflow as tf
-from tensorflow.keras.optimizers import Adam
+
 
 from models.triq_model import create_triq_model
 from callbacks.callbacks import create_callbacks
@@ -57,7 +57,7 @@ def train_main(args):
     if not args['image_aug']:
         model_name += '_no_imageaug'
 
-    optimizer = Adam(args['lr_base'])
+    optimizer = tf.keras.optimizers.Adam(args['lr_base'])
 
     if args['multi_gpu'] > 0:
         strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
@@ -194,32 +194,32 @@ if __name__ == '__main__':
     args['multi_gpu'] = 1
     args['gpu'] = 1
 
-    args['result_folder'] = r'.\database\results_triq\triq_conv2D_all'
+    args['result_folder'] = r'E:\Fall 2023 docs\triq\src\train\database\results_triq\triq_conv2D_all'
     args['n_quality_levels'] = 5
 
     args['backbone'] = 'resnet50'
 
     args['train_folders'] = [
-        r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\train\koniq_normal',
-        r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\train\koniq_small',
-        r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\train\live']
+        r'E:\Fall 2023 docs\triq\src\databases\train\koniq_normal',
+        r'E:\Fall 2023 docs\triq\src\databases\train\koniq_small',
+        r'E:\Fall 2023 docs\triq\src\databases\train\live']
     args['val_folders'] = [
-        r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\val\koniq_normal',
-        r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\val\koniq_small',
-        r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\val\live']
-    args['koniq_mos_file'] = r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\koniq10k_images_scores.csv'
-    args['live_mos_file'] = r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\live_mos.csv'
+        r'E:\Fall 2023 docs\triq\src\databases\val\koniq_normal',
+        r'E:\Fall 2023 docs\triq\src\databases\val\koniq_small',
+        r'E:\Fall 2023 docs\triq\src\databases\val\live']
+    args['koniq_mos_file'] = r'E:\Fall 2023 docs\triq\src\databases\koniq10k_images_scores.csv'
+    args['live_mos_file'] = r'E:\Fall 2023 docs\triq\src\databases\live_mos.csv'
 
     args['initial_epoch'] = 0
 
     args['lr_base'] = 0.01
     args['lr_schedule'] = True
-    args['batch_size'] = 15
+    args['batch_size'] = 10
     args['epochs'] = 10
 
     args['image_aug'] = True
     # args['weights'] = r'.\pretrained_weights\vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5'
-    args['weights'] = r'E:\DS and ML materials\Fall 2023 docs\resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
+    args['weights'] = r'E:\Fall 2023 docs\triq\src\resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
 
     #args['do_finetune'] = True
 
