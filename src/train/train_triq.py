@@ -2,7 +2,7 @@ import os
 import numpy as np
 import glob
 import tensorflow as tf
-from tensorflow.keras.optimizers import Adam
+
 
 from models.triq_model import create_triq_model
 from callbacks.callbacks import create_callbacks
@@ -33,9 +33,9 @@ def remove_non_best_weights(result_folder, best_weights_files):
 
 
 def train_main(args):
-    # if args['multi_gpu'] == 0:
-    #     gpus = tf.config.experimental.list_physical_devices('GPU')
-    #     tf.config.experimental.set_visible_devices(gpus[args['gpu']], 'GPU')
+    if args['multi_gpu'] == 0:
+        gpus = tf.config.experimental.list_physical_devices('GPU')
+        tf.config.experimental.set_visible_devices(gpus[args['gpu']], 'GPU')
 
     result_folder = args['result_folder']
     model_name = 'triq_conv2D_all'
@@ -57,7 +57,7 @@ def train_main(args):
     if not args['image_aug']:
         model_name += '_no_imageaug'
 
-    optimizer = Adam(args['lr_base'])
+    optimizer = tf.keras.optimizers.Adam(args['lr_base'])
 
     if args['multi_gpu'] > 0:
         strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
@@ -87,7 +87,7 @@ def train_main(args):
     imagenet_pretrain = True
 
     # Define train and validation data
-    image_scores = get_image_scores(args['koniq_mos_file'], args['live_mos_file'], using_single_mos=using_single_mos)
+    image_scores = get_image_scores(args['tid_mos_file'], args['live_mos_file'], using_single_mos=using_single_mos)
     train_image_file_groups, train_score_groups = get_image_score_from_groups(args['train_folders'], image_scores)
     train_generator = GroupGenerator(train_image_file_groups,
                                      train_score_groups,
@@ -150,42 +150,42 @@ def train_main(args):
                               callbacks=callbacks,
                               initial_epoch=args['initial_epoch'],
                               )
-    # model.save(os.path.join(result_folder, model_name + '.h5'))
-    # plot_history(model_history, result_folder, model_name)
+    model.save(os.path.join(result_folder, model_name + '.h5'))
+    plot_history(model_history, result_folder, model_name)
 
-    #best_weights_file = identify_best_weights(result_folder, model_history.history, callbacks[3].best)
-    #remove_non_best_weights(result_folder, [best_weights_file])
+    best_weights_file = identify_best_weights(result_folder, model_history.history, callbacks[3].best)
+    remove_non_best_weights(result_folder, [best_weights_file])
 
     # do fine-tuning
-    # if args['do_finetune'] and best_weights_file:
-    #     print('Finetune...')
-    #     del (callbacks[-1])
-    #     model.load_weights(best_weights_file)
-    #     finetune_lr = 1e-6
-    #     if args['lr_schedule']:
-    #         warmup_lr_finetune = WarmUpCosineDecayScheduler(learning_rate_base=finetune_lr,
-    #                                                         total_steps=total_train_steps,
-    #                                                         warmup_learning_rate=0.0,
-    #                                                         warmup_steps=warmup_steps,
-    #                                                         hold_base_rate_steps=10 * train_steps,
-    #                                                         verbose=1)
-    #         callbacks.append(warmup_lr_finetune)
-    #     finetune_optimizer = Adam(finetune_lr)
-    #     model.compile(loss=loss, optimizer=finetune_optimizer, metrics=[metrics])
+    if args['do_finetune'] and best_weights_file:
+        print('Finetune...')
+        del (callbacks[-1])
+        model.load_weights(best_weights_file)
+        finetune_lr = 1e-6
+        if args['lr_schedule']:
+            warmup_lr_finetune = WarmUpCosineDecayScheduler(learning_rate_base=finetune_lr,
+                                                            total_steps=total_train_steps,
+                                                            warmup_learning_rate=0.0,
+                                                            warmup_steps=warmup_steps,
+                                                            hold_base_rate_steps=10 * train_steps,
+                                                            verbose=1)
+            callbacks.append(warmup_lr_finetune)
+        finetune_optimizer = Adam(finetune_lr)
+        model.compile(loss=loss, optimizer=finetune_optimizer, metrics=[metrics])
 
-    #     finetune_model_history = model.fit(x=train_generator,
-    #                               epochs=args['epochs'],
-    #                               steps_per_epoch=train_steps,
-    #                               validation_data=validation_generator,
-    #                               validation_steps=validation_steps,
-    #                               verbose=1,
-    #                               shuffle=False,
-    #                               callbacks=callbacks,
-    #                               initial_epoch=args['initial_epoch'],
-    #                               )
+        finetune_model_history = model.fit(x=train_generator,
+                                  epochs=args['epochs'],
+                                  steps_per_epoch=train_steps,
+                                  validation_data=validation_generator,
+                                  validation_steps=validation_steps,
+                                  verbose=1,
+                                  shuffle=False,
+                                  callbacks=callbacks,
+                                  initial_epoch=args['initial_epoch'],
+                                  )
 
-    #     best_weights_file_finetune = identify_best_weights(result_folder, finetune_model_history.history, callbacks[3].best)
-    #     remove_non_best_weights(result_folder, [best_weights_file, best_weights_file_finetune])
+        best_weights_file_finetune = identify_best_weights(result_folder, finetune_model_history.history, callbacks[3].best)
+        remove_non_best_weights(result_folder, [best_weights_file, best_weights_file_finetune])
 
 
 if __name__ == '__main__':
@@ -194,32 +194,30 @@ if __name__ == '__main__':
     args['multi_gpu'] = 1
     args['gpu'] = 1
 
-    args['result_folder'] = r'.\database\results_triq\triq_conv2D_all'
+    args['result_folder'] = r'./train/database/results_triq\triq_conv2D_all'
     args['n_quality_levels'] = 5
 
     args['backbone'] = 'resnet50'
 
     args['train_folders'] = [
-        r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\train\koniq_normal',
-        r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\train\koniq_small',
-        r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\train\live']
+        r'./databases/train/tid',
+        r'./databases/train/live']
     args['val_folders'] = [
-        r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\val\koniq_normal',
-        r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\val\koniq_small',
-        r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\val\live']
-    args['koniq_mos_file'] = r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\koniq10k_images_scores.csv'
-    args['live_mos_file'] = r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\live_mos.csv'
+        r'./databases/val/tid',
+        r'./databases/val/live']
+    args['tid_mos_file'] = r'./databases/TID_mos.csv'
+    args['live_mos_file'] = r'./databases/live_mos.csv'
 
     args['initial_epoch'] = 0
 
     args['lr_base'] = 0.01
     args['lr_schedule'] = True
-    args['batch_size'] = 15
+    args['batch_size'] = 10
     args['epochs'] = 10
 
     args['image_aug'] = True
     # args['weights'] = r'.\pretrained_weights\vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5'
-    args['weights'] = r'E:\DS and ML materials\Fall 2023 docs\resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
+    args['weights'] = r'.resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
 
     #args['do_finetune'] = True
 

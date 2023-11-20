@@ -154,7 +154,7 @@ class TriQImageQualityTransformer(Model):
 
         # MLP head
         if n_quality_levels > 1:
-            mlp_activation = 'softmax'
+            mlp_activation = 'sigmoid'
         else:
             mlp_activation = 'linear'
         self.mlp_head = tf.keras.Sequential(

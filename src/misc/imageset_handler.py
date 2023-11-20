@@ -11,6 +11,8 @@ import glob
 import scipy.stats
 import matplotlib.pyplot as plt
 
+tid_mos_file = r'./databases/TID_mos.csv'
+live_mos_file = r'./databases/live_mos.csv'
 
 def si_image(image):
     """
@@ -99,36 +101,36 @@ def get_si(folders):
     return si
 
 
-def draw_train_val_si_hist():
-    """
-    Draw the histogram of SI of train and validation sets
-    :return:
-    """
-    # train_folders = [r'.\image_quality_koniq10k\train\koniq_normal',
-    #                  r'.\image_quality_koniq10k\train\live']
-    # val_folders = [r'.\image_quality_koniq10k\val\koniq_normal',
-    #                r'.\image_quality_koniq10k\val\live']
-    train_folders = [r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\train\koniq_normal',
-                     r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\train\live']
-    val_folders = [r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\val\live',
-                   r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\val\live']
-
-    train_si = get_si(train_folders)
-    val_si = get_si(val_folders)
-    np.save(r'.\database\train_si.npy', train_si)
-    np.save(r'.\database\val_si.npy', val_si)
-    max_si = np.max(train_si)
-    min_si = np.min(train_si)
-
-    plt.figure()
-    bins = np.linspace(min_si, max_si, 100)
-    # bins = 100
-    plt.hist(train_si, bins=bins, alpha=0.5, rwidth=0.95, color='skyblue', label='Train set')
-    plt.xlim(min_si, max_si)
-    plt.hist(val_si, bins=bins, alpha=1., rwidth=0.95, label='Validation set')
-    plt.legend(loc='upper right')
-    # plt.ylabel('Density')
-    plt.xlabel('SI', fontsize=14)
+# def draw_train_val_si_hist():
+#     """
+#     Draw the histogram of SI of train and validation sets
+#     :return:
+#     """
+#     # train_folders = [r'.\image_quality_koniq10k\train\koniq_normal',
+#     #                  r'.\image_quality_koniq10k\train\live']
+#     # val_folders = [r'.\image_quality_koniq10k\val\koniq_normal',
+#     #                r'.\image_quality_koniq10k\val\live']
+#     train_folders = [r'../databases/train/tid',
+#                      r'../databases/train/live']
+#     val_folders = [r'../databases/val/tid',
+#                    r'../databases/val/live']
+#
+#     train_si = get_si(train_folders)
+#     val_si = get_si(val_folders)
+#     np.save(r'../train/database/train_si.npy', train_si)
+#     np.save(r'../train/database/val_si.npy', val_si)
+#     max_si = np.max(train_si)
+#     min_si = np.min(train_si)
+#
+#     plt.figure()
+#     bins = np.linspace(min_si, max_si, 100)
+#     # bins = 100
+#     plt.hist(train_si, bins=bins, alpha=0.5, rwidth=0.95, color='skyblue', label='Train set')
+#     plt.xlim(min_si, max_si)
+#     plt.hist(val_si, bins=bins, alpha=1., rwidth=0.95, label='Validation set')
+#     plt.legend(loc='upper right')
+#     # plt.ylabel('Density')
+#     plt.xlabel('SI', fontsize=14)
     # plt.show()
 
     # plt.subplot(211)
@@ -148,16 +150,16 @@ def draw_train_val_mos_hist():
     Draw the histogram of MOS in the train and val sets
     :return:
     """
-    train_folders = [r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\train\koniq_normal',
+    train_folders = [r'./databases/train/tid',
                      # r'.\database\train\koniq_small',
-                     r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\train\live']
-    val_folders = [r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\val\koniq_normal',
+                     r'./databases/train/live']
+    val_folders = [r'./databases/val/tid',
                    # r'.\database\val\koniq_small',
-                   r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\train\live']
+                   r'./databases/train/live']
 
-    koniq_mos_file = r'../databases/koniq10k_images_scores.csv'
-    live_mos_file = r'../databases/live_mos.csv'
-    image_scores = get_image_scores(koniq_mos_file, live_mos_file)
+    tid_mos_file = r'./databases/TID_mos.csv'
+    live_mos_file = r'./databases/live_mos.csv'
+    image_scores = get_image_scores(tid_mos_file, live_mos_file)
     train_scores = get_scores(train_folders, image_scores)
     val_scores = get_scores(val_folders, image_scores)
 
@@ -171,8 +173,8 @@ def draw_train_val_mos_hist():
     # plt.ylabel('Density')
     plt.xlabel('MOS', fontsize=14)
 
-    train_si = np.load(r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\train_si.npy')
-    val_si = np.load(r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\val_si.npy')
+    train_si = np.load(r'../databases/train_si.npy')
+    val_si = np.load(r'../databases/val_si.npy')
     max_si = np.max(train_si)
     min_si = np.min(train_si)
 
@@ -209,7 +211,7 @@ def get_image_scores_from_two_file_formats(mos_file, file_format, mos_format, us
             if using_single_mos:
                 score = float(content[-1]) if mos_format == 'mos' else float(content[1]) / 25. + 1
             else:
-                if file_format == 'koniq':
+                if file_format == 'TID':
                     scores_softmax = np.array([float(score) for score in content[1 : 6]])
                     score = [score_softmax / scores_softmax.sum() for score_softmax in scores_softmax]
                 else:
@@ -222,9 +224,9 @@ def get_image_scores_from_two_file_formats(mos_file, file_format, mos_format, us
 
 
 def get_image_scores(koniq_mos_file, live_mos_file, using_single_mos=True):
-    image_scores_koniq = get_image_scores_from_two_file_formats(koniq_mos_file, 'koniq', 'mos', using_single_mos)
+    image_scores_tid = get_image_scores_from_two_file_formats(tid_mos_file, 'TID', 'mos', using_single_mos)
     image_scores_live = get_image_scores_from_two_file_formats(live_mos_file, 'live', 'z-score', using_single_mos)
-    return {**image_scores_koniq, **image_scores_live}
+    return {**image_scores_tid, **image_scores_live}
 
 
 def get_image_score_from_groups(folders, image_scores):
@@ -302,8 +304,8 @@ def split_train_val(ratio=0.5):
     :param ratio: splitting ratio
     :return:
     """
-    target_train_folder = r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\train\live'
-    target_val_folder = r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\val\live'
+    target_train_folder = r'../databases/train\live'
+    target_val_folder = r'..databases/val/live'
     # image_files = self.get_si_scores()
     image_files = get_live_images()
     mos_scale = [1, 2, 3, 4, 5]
@@ -341,19 +343,19 @@ def split_train_val(ratio=0.5):
                 # train_image_files.append(sorted_image_file)
 
 
-def resize_koniq_images(image_folder):
-    """
-    Halve size of images in the KonIQ-10k database
-    :param image_folder: image folder of KonIQ-10 database
-    :return:
-    """
-    target_folder = r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\train\koniq_small'
-    image_files = glob.glob(os.path.join(image_folder, '*.jpg'))
-    for image_file in image_files:
-        image = Image.open(image_file)
-        resized_image = image.resize((512, 384))
-        basename = os.path.basename(image_file)
-        resized_image.save(os.path.join(target_folder, basename))
+# def resize_koniq_images(image_folder):
+#     """
+#     Halve size of images in the KonIQ-10k database
+#     :param image_folder: image folder of KonIQ-10 database
+#     :return:
+#     """
+#     target_folder = r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\train\koniq_small'
+#     image_files = glob.glob(os.path.join(image_folder, '*.jpg'))
+#     for image_file in image_files:
+#         image = Image.open(image_file)
+#         resized_image = image.resize((512, 384))
+#         basename = os.path.basename(image_file)
+#         resized_image.save(os.path.join(target_folder, basename))
 
 
 class GroupProvider:
@@ -386,8 +388,8 @@ class GroupProvider:
         return train_image_files, test_image_files, train_scores, test_scores
 
     def get_live_images(self):
-        image_folder = r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\live_wild\Images'
-        image_mos_file = r'E:\DS and ML materials\Fall 2023 docs\triq\src\database\live_wild\live_mos.csv'
+        image_folder = r'./databases/live_wild/Images'
+        image_mos_file = r'../database/live_wild/live_mos.csv'
         # image_si = []
         # scores = []
         image_files = {}
@@ -406,8 +408,8 @@ class GroupProvider:
         return image_files
 
     def split_train_val(self, ratio=0.5):
-        target_train_folder = r'E:\DS and ML materials\Fall 2023 docs\triq\src\databases\train\live'
-        target_val_folder = r'E:\DS and ML materials\Fall 2023 docs\triq\src\database\val\live'
+        target_train_folder = r'./databases/train/live'
+        target_val_folder = r'./databases/val/live'
         # image_files = self.get_si_scores()
         image_files = self.get_live_images()
         mos_scale = [1, 2, 3, 4, 5]
@@ -444,14 +446,14 @@ class GroupProvider:
                     # shutil.copy(sorted_image_file, os.path.join(target_train_folder, basename))
                     # train_image_files.append(sorted_image_file)
 
-    def resize_koniq_images(self, image_folder):
-        target_folder = r'E:\DS and ML materials\Fall 2023 docs\triq\src\database\train\koniq_small'
-        image_files = glob.glob(os.path.join(image_folder, '*.jpg'))
-        for image_file in image_files:
-            image = Image.open(image_file)
-            resized_image = image.resize((512, 384))
-            basename = os.path.basename(image_file)
-            resized_image.save(os.path.join(target_folder, basename))
+    # def resize_koniq_images(self, image_folder):
+    #     target_folder = r'E:\DS and ML materials\Fall 2023 docs\triq\src\database\train\koniq_small'
+    #     image_files = glob.glob(os.path.join(image_folder, '*.jpg'))
+    #     for image_file in image_files:
+    #         image = Image.open(image_file)
+    #         resized_image = image.resize((512, 384))
+    #         basename = os.path.basename(image_file)
+    #         resized_image.save(os.path.join(target_folder, basename))
 
 
 if __name__ == '__main__':
