@@ -43,7 +43,7 @@ def train_main(args):
     # Define loss function according to prediction objective (score distribution or MOS)
     if args['n_quality_levels'] > 1:
         using_single_mos = False
-        loss = 'mean_squared_error'
+        loss = 'categorical_crossentropy'
         metrics = None
         model_name += '_distribution'
     else:
@@ -151,7 +151,7 @@ def train_main(args):
                               initial_epoch=args['initial_epoch'],
                               )
     model.save(os.path.join(result_folder, model_name + '.h5'))
-    plot_history(model_history, result_folder, model_name)
+    #plot_history(model_history, result_folder, model_name)
 
     best_weights_file = identify_best_weights(result_folder, model_history.history, callbacks[3].best)
     remove_non_best_weights(result_folder, [best_weights_file])
@@ -205,15 +205,15 @@ if __name__ == '__main__':
     args['val_folders'] = [
         r'./databases/val/tid',
         r'./databases/val/live']
-    args['tid_mos_file'] = r'./databases/TID_mos.csv'
+    args['tid_mos_file'] = r'./databases/tid_mos.csv'
     args['live_mos_file'] = r'./databases/live_mos.csv'
 
     args['initial_epoch'] = 0
 
-    args['lr_base'] = 0.00005
+    args['lr_base'] = 0.0001
     args['lr_schedule'] = True
-    args['batch_size'] = 8
-    args['epochs'] = 30
+    args['batch_size'] = 16
+    args['epochs'] = 80
 
     args['image_aug'] = True
     args['weights'] = r'./pretrained_weights/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'

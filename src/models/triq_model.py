@@ -55,9 +55,9 @@ def create_triq_model(n_quality_levels,
     transformer_output = transformer(C5)
 
     # Add a Dense layer with a scaled sigmoid activation
-    final_output = Dense(1, activation=lambda x: sigmoid(x) * 5)(transformer_output)
+    #final_output = Dense(1, activation=lambda x: sigmoid(x) * 5)(transformer_output)
 
-    model = Model(inputs=inputs, outputs=final_output)
+    model = Model(inputs=inputs, outputs=transformer_output)
     model.summary()
     return model
 

@@ -1,67 +1,224 @@
-"""
-This scipr is to evaluate (calculate the evaluation criteria PLCC, SROCC, RMSE) on individual testing sets.
-TRIQ should be first generated, and then the weights file is loaded.
-"""
+import os
+import numpy as np
+import glob
+import tensorflow as tf
+
+
 from models.triq_model import create_triq_model
+from callbacks.callbacks import create_callbacks
 from misc.imageset_handler import get_image_scores, get_image_score_from_groups
-from train.evaluation import ModelEvaluation
-import time
+from train.group_generator import GroupGenerator
+from callbacks.evaluation_callback_generator import ModelEvaluationIQGenerator
+from callbacks.warmup_cosine_decay_scheduler import WarmUpCosineDecayScheduler
 
 
-def val_main(args):
+def identify_best_weights(result_folder, history, best_plcc):
+    pos = np.where(history['plcc'] == best_plcc)[0][0]
+
+    pos_loss = '{}_{:.4f}'.format(pos + 1, history['loss'][pos])
+    all_weights_files = glob.glob(os.path.join(result_folder, '*.h5'))
+    for all_weights_file in all_weights_files:
+        weight_file = os.path.basename(all_weights_file)
+        if weight_file.startswith(pos_loss):
+            best_weights_file = all_weights_file
+            return best_weights_file
+    return None
+
+
+def remove_non_best_weights(result_folder, best_weights_files):
+    all_weights_files = glob.glob(os.path.join(result_folder, '*.h5'))
+    for all_weights_file in all_weights_files:
+        if all_weights_file not in best_weights_files:
+            os.remove(all_weights_file)
+
+
+def train_main(args):
+    if args['multi_gpu'] == 0:
+        gpus = tf.config.experimental.list_physical_devices('GPU')
+        tf.config.experimental.set_visible_devices(gpus[args['gpu']], 'GPU')
+
+    result_folder = args['result_folder']
+    model_name = 'triq_conv2D_all'
+
+    # Define loss function according to prediction objective (score distribution or MOS)
     if args['n_quality_levels'] > 1:
         using_single_mos = False
+        loss = 'categorical_crossentropy'
+        metrics = None
+        model_name += '_distribution'
     else:
         using_single_mos = True
+        metrics = None
+        loss = 'mse'
+        model_name += '_mos'
 
-    if args['weights'] is not None:
-        imagenet_pretrain = True
+    if args['lr_base'] < 1e-4 / 2:
+        model_name += '_finetune'
+    if not args['image_aug']:
+        model_name += '_no_imageaug'
+
+    optimizer = tf.keras.optimizers.Adam(args['lr_base'])
+
+    if args['multi_gpu'] > 0:
+        strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
+        print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
+
+        with strategy.scope():
+            # Everything that creates variables should be under the strategy scope.
+            # In general this is only model construction & `compile()`.
+            model = create_triq_model(n_quality_levels=5,
+                                      input_shape=(None, None, 3),
+                                      backbone=args['backbone'],
+                                      maximum_position_encoding=193)
+
+            model.compile(loss=loss, optimizer=optimizer, metrics=[metrics])
+
     else:
-        imagenet_pretrain = False
+        model = create_triq_model(n_quality_levels=5,
+                                  input_shape=(None, None, 3),
+                                  backbone=args['backbone'],
+                                  maximum_position_encoding=193)
+        model.compile(loss=loss, optimizer=optimizer, metrics=[metrics])
 
-    val_folders = [
-                    r'./databases/val/tid',
-                   r'./databases/val/live']
+    # model.summary()
+    print('Load ImageNet weights')
+    model.load_weights(args['weights'], by_name=True)
 
-    koniq_mos_file = r'./databases/tid_mos.csv'
-    live_mos_file = r'./databases/live_mos.csv'
+    imagenet_pretrain = True
 
-    image_scores = get_image_scores(tid_mos_file, live_mos_file, using_single_mos=using_single_mos)
-    test_image_file_groups, test_score_groups = get_image_score_from_groups(val_folders, image_scores)
+    # Define train and validation data
+    image_scores = get_image_scores(args['tid_mos_file'], args['live_mos_file'], using_single_mos=using_single_mos)
+    train_image_file_groups, train_score_groups = get_image_score_from_groups(args['train_folders'], image_scores)
+    train_generator = GroupGenerator(train_image_file_groups,
+                                     train_score_groups,
+                                     batch_size=args['batch_size'],
+                                     image_aug=args['image_aug'],
+                                     imagenet_pretrain=imagenet_pretrain)
+    train_steps = train_generator.__len__()
 
-    # validation_generator = GroupGenerator(test_image_file_groups,
-    #                                       test_score_groups,
-    #                                       batch_size=32,
-    #                                       image_aug=False,
-    #                                       imagenet_pretrain=False)
+    if args['val_folders'] is not None:
+        test_image_file_groups, test_score_groups = get_image_score_from_groups(args['val_folders'], image_scores)
+        validation_generator = GroupGenerator(test_image_file_groups,
+                                              test_score_groups,
+                                              batch_size=args['batch_size'],
+                                              image_aug=False,
+                                              imagenet_pretrain=imagenet_pretrain)
+        validation_steps = validation_generator.__len__()
 
-    test_image_files = []
-    test_scores = []
-    for test_image_file_group, test_score_group in zip(test_image_file_groups, test_score_groups):
-        test_image_files.extend(test_image_file_group)
-        test_scores.extend(test_score_group)
+        evaluation_callback = ModelEvaluationIQGenerator(validation_generator,
+                                                         using_single_mos,
+                                                         evaluation_generator=None)
 
-    model = create_triq_model(n_quality_levels=5,
-                              input_shape=(None, None, 3),
-                              # transformer_params=[2, 32, 16, 64],
-                              backbone=args['backbone'],
-                              maximum_position_encoding=193)
-    model.load_weights(args['weights'])
+    else:
+        evaluation_callback = None
+        validation_generator = None
+        validation_steps = 0
 
-    evaluation = ModelEvaluation(model, test_image_files, test_scores, using_single_mos,
-                                 imagenet_pretrain=imagenet_pretrain)
-    plcc, srcc, rmse = evaluation.__evaluation__()
+    result_folder = os.path.join(result_folder, model_name)
+    if not os.path.exists(result_folder):
+        os.makedirs(result_folder)
+
+    # Create callbacks including evaluation and learning rate scheduler
+    callbacks = create_callbacks(model_name,
+                                 result_folder,
+                                 evaluation_callback,
+                                 checkpoint=True,
+                                 early_stop=True,
+                                 metrics=metrics)
+
+    warmup_epochs = 10
+    if args['lr_schedule']:
+        total_train_steps = args['epochs'] * train_steps
+        warmup_steps = warmup_epochs * train_steps
+        warmup_lr = WarmUpCosineDecayScheduler(learning_rate_base=args['lr_base'],
+                                               total_steps=total_train_steps,
+                                               warmup_learning_rate=0.0,
+                                               warmup_steps=warmup_steps,
+                                               hold_base_rate_steps=30 * train_steps,
+                                               verbose=1)
+        callbacks.append(warmup_lr)
+
+    # Define optimizer and train
+
+    model_history = model.fit(x=train_generator,
+                              epochs=args['epochs'],
+                              steps_per_epoch=train_steps,
+                              validation_data=validation_generator,
+                              validation_steps=validation_steps,
+                              verbose=1,
+                              shuffle=False,
+                              callbacks=callbacks,
+                              initial_epoch=args['initial_epoch'],
+                              )
+    model.save(os.path.join(result_folder, model_name + '.h5'))
+    #plot_history(model_history, result_folder, model_name)
+
+    best_weights_file = identify_best_weights(result_folder, model_history.history, callbacks[3].best)
+    remove_non_best_weights(result_folder, [best_weights_file])
+
+    # do fine-tuning
+    if args['do_finetune'] and best_weights_file:
+        print('Finetune...')
+        del (callbacks[-1])
+        model.load_weights(best_weights_file)
+        finetune_lr = 1e-6
+        if args['lr_schedule']:
+            warmup_lr_finetune = WarmUpCosineDecayScheduler(learning_rate_base=finetune_lr,
+                                                            total_steps=total_train_steps,
+                                                            warmup_learning_rate=0.0,
+                                                            warmup_steps=warmup_steps,
+                                                            hold_base_rate_steps=10 * train_steps,
+                                                            verbose=1)
+            callbacks.append(warmup_lr_finetune)
+        finetune_optimizer = Adam(finetune_lr)
+        model.compile(loss=loss, optimizer=finetune_optimizer, metrics=[metrics])
+
+        finetune_model_history = model.fit(x=train_generator,
+                                  epochs=args['epochs'],
+                                  steps_per_epoch=train_steps,
+                                  validation_data=validation_generator,
+                                  validation_steps=validation_steps,
+                                  verbose=1,
+                                  shuffle=False,
+                                  callbacks=callbacks,
+                                  initial_epoch=args['initial_epoch'],
+                                  )
+
+        best_weights_file_finetune = identify_best_weights(result_folder, finetune_model_history.history, callbacks[3].best)
+        remove_non_best_weights(result_folder, [best_weights_file, best_weights_file_finetune])
 
 
 if __name__ == '__main__':
-    # gpus = tf.config.experimental.list_physical_devices('GPU')
-    # tf.config.experimental.set_visible_devices(gpus[1], 'GPU')
-
+# def main():
     args = {}
-    args['n_quality_levels'] = 5
-    args['backbone'] = 'resnet50'
-    args['weights'] = r'./train/database/results_triq\triq_conv2D_all/triq_conv2D_all_distribution/14_0.1564_0.1719.h5'
+    args['multi_gpu'] = 1
+    args['gpu'] = 1
 
-    t_start = time.time()
-    val_main(args)
-    print('Elpased time: {}'.format(time.time() - t_start))
+    args['result_folder'] = r'./train/database/results_triq\triq_conv2D_all'
+    args['n_quality_levels'] = 5
+
+    args['backbone'] = 'resnet50'
+
+    args['train_folders'] = [
+        r'./databases/train/tid',
+        r'./databases/train/live']
+    args['val_folders'] = [
+        r'./databases/val/tid',
+        r'./databases/val/live']
+    args['tid_mos_file'] = r'./databases/tid_mos.csv'
+    args['live_mos_file'] = r'./databases/live_mos.csv'
+
+    args['initial_epoch'] = 0
+
+    args['lr_base'] = 0.0005
+    args['lr_schedule'] = True
+    args['batch_size'] = 10
+    args['epochs'] = 80
+
+    args['image_aug'] = True
+    args['weights'] = r'./pretrained_weights/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
+    # args['weights'] = r'resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
+
+    #args['do_finetune'] = True
+
+    train_main(args)
