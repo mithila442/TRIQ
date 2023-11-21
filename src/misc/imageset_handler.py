@@ -10,8 +10,8 @@ import shutil
 import glob
 import scipy.stats
 import matplotlib.pyplot as plt
-
-tid_mos_file = r'./databases/TID_mos.csv'
+import scipy.stats
+tid_mos_file = r'./databases/tid_mos.csv'
 live_mos_file = r'./databases/live_mos.csv'
 
 def si_image(image):
@@ -157,7 +157,7 @@ def draw_train_val_mos_hist():
                    # r'.\database\val\koniq_small',
                    r'./databases/train/live']
 
-    tid_mos_file = r'./databases/TID_mos.csv'
+    tid_mos_file = r'./databases/tid_mos.csv'
     live_mos_file = r'./databases/live_mos.csv'
     image_scores = get_image_scores(tid_mos_file, live_mos_file)
     train_scores = get_scores(train_folders, image_scores)
@@ -212,8 +212,28 @@ def get_image_scores_from_two_file_formats(mos_file, file_format, mos_format, us
                 score = float(content[-1]) if mos_format == 'mos' else float(content[1]) / 25. + 1
             else:
                 if file_format == 'TID':
-                    scores_softmax = np.array([float(score) for score in content[1 : 6]])
-                    score = [score_softmax / scores_softmax.sum() for score_softmax in scores_softmax]
+
+                    # Load the CSV file
+                    file_path = '/mnt/data/live_mos.csv'
+                    data = pd.read_csv(file_path)
+
+                    # Extract the standard deviation and MOS (or Z-score)
+                    std_devs = content[-2]  # Replace 'standard_deviation' with the actual column name for std deviation
+                    mos_scores = content[-1]  # Replace 'MOS' with the actual column name for MOS or Z-score
+
+                    # Define the score scale (adjust the range and step as needed)
+                    score_scale = np.linspace(1, 5, 100)  # For example, scores from 1 to 5
+
+                    # Generate Gaussian distributions for each image
+                    distributions = []
+                    for std, mos in zip(std_devs, mos_scores):
+                        distribution = scipy.stats.norm(loc=mos, scale=std).pdf(score_scale)
+                        normalized_distribution = distribution / distribution.sum()  # Normalize to get probabilities
+                        distributions.append(normalized_distribution)
+
+                    # 'distributions' now contains the probability distributions for each image
+                    score=distributions
+
                 else:
                     std = float(content[-2]) if mos_format == 'mos' else float(content[-2]) / 25.
                     mean = float(content[-1]) if mos_format == 'mos' else float(content[-1]) / 25. + 1
@@ -224,7 +244,7 @@ def get_image_scores_from_two_file_formats(mos_file, file_format, mos_format, us
 
 
 def get_image_scores(koniq_mos_file, live_mos_file, using_single_mos=True):
-    image_scores_tid = get_image_scores_from_two_file_formats(tid_mos_file, 'TID', 'mos', using_single_mos)
+    image_scores_tid = get_image_scores_from_two_file_formats(tid_mos_file, 'tid', 'mos', using_single_mos)
     image_scores_live = get_image_scores_from_two_file_formats(live_mos_file, 'live', 'z-score', using_single_mos)
     return {**image_scores_tid, **image_scores_live}
 
@@ -477,5 +497,3 @@ if __name__ == '__main__':
     # std = 21.2405 / 25.
     # mos_scale = [1, 2, 3, 4, 5]
     # score = get_distribution(mos_scale, mean, std)
-
-

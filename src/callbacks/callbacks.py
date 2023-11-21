@@ -18,9 +18,9 @@ def create_callbacks(model_name, result_folder, other_callback=None, checkpoint=
     callbacks = []
     if other_callback is not None:
         callbacks.append(other_callback)
-    csv_log_file = os.path.join(result_folder, model_name + '.log')
-    csv_logger = MyCSVLogger(csv_log_file, model_name, append=True, separator=';')
-    callbacks.append(csv_logger)
+    # csv_log_file = os.path.join(result_folder, model_name + '.log')
+    # csv_logger = MyCSVLogger(csv_log_file, model_name, append=True, separator=';')
+    # callbacks.append(csv_logger)
     if early_stop:
         callbacks.append(EarlyStopping(monitor='plcc', min_delta=0.001, patience=40, mode='max'))
     if checkpoint:

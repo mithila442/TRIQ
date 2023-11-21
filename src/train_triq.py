@@ -43,7 +43,7 @@ def train_main(args):
     # Define loss function according to prediction objective (score distribution or MOS)
     if args['n_quality_levels'] > 1:
         using_single_mos = False
-        loss = 'categorical_crossentropy'
+        loss = 'mean_squared_error'
         metrics = None
         model_name += '_distribution'
     else:
@@ -210,10 +210,10 @@ if __name__ == '__main__':
 
     args['initial_epoch'] = 0
 
-    args['lr_base'] = 0.01
+    args['lr_base'] = 0.00005
     args['lr_schedule'] = True
-    args['batch_size'] = 10
-    args['epochs'] = 10
+    args['batch_size'] = 8
+    args['epochs'] = 30
 
     args['image_aug'] = True
     args['weights'] = r'./pretrained_weights/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'

@@ -9,6 +9,10 @@ from models.transformer_iqa import TriQImageQualityTransformer
 import tensorflow as tf
 
 
+from tensorflow.keras.layers import Input, Dense, Activation
+from tensorflow.keras.models import Model
+from tensorflow.keras.activations import sigmoid
+
 def create_triq_model(n_quality_levels,
                       input_shape=(None, None, 3),
                       backbone='resnet50',
@@ -19,7 +23,7 @@ def create_triq_model(n_quality_levels,
     Creates the hybrid TRIQ model
     :param n_quality_levels: number of quality levels, use 5 to predict quality distribution
     :param input_shape: input shape
-    :param backbone: bakbone nets, supports ResNet50 and VGG16 now
+    :param backbone: backbone nets, supports ResNet50 and VGG16 now
     :param transformer_params: Transformer parameters
     :param maximum_position_encoding: the maximal number of positional embeddings
     :param vis: flag to visualize attention weight maps
@@ -48,11 +52,15 @@ def create_triq_model(n_quality_levels,
         maximum_position_encoding=maximum_position_encoding,
         vis=vis
     )
-    outputs = transformer(C5)
+    transformer_output = transformer(C5)
 
-    model = Model(inputs=inputs, outputs=outputs)
+    # Add a Dense layer with a scaled sigmoid activation
+    final_output = Dense(1, activation=lambda x: sigmoid(x) * 5)(transformer_output)
+
+    model = Model(inputs=inputs, outputs=final_output)
     model.summary()
     return model
+
 
 
 if __name__ == '__main__':
