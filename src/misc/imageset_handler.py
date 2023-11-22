@@ -211,30 +211,30 @@ def get_image_scores_from_two_file_formats(mos_file, file_format, mos_format, us
             if using_single_mos:
                 score = float(content[-1]) if mos_format == 'mos' else float(content[1]) / 25. + 1
             else:
-                if file_format == 'TID':
+                # if file_format == 'TID':
 
-                    # Load the CSV file
-                    file_path = '/mnt/data/live_mos.csv'
-                    data = pd.read_csv(file_path)
+                #     # Load the CSV file
+                #     file_path = '/mnt/data/live_mos.csv'
+                #     data = pd.read_csv(file_path)
 
-                    # Extract the standard deviation and MOS (or Z-score)
-                    std_devs = content[-2]  # Replace 'standard_deviation' with the actual column name for std deviation
-                    mos_scores = content[-1]  # Replace 'MOS' with the actual column name for MOS or Z-score
+                #     # Extract the standard deviation and MOS (or Z-score)
+                #     std_devs = content[-2]  # Replace 'standard_deviation' with the actual column name for std deviation
+                #     mos_scores = content[-1]  # Replace 'MOS' with the actual column name for MOS or Z-score
 
-                    # Define the score scale (adjust the range and step as needed)
-                    score_scale = np.linspace(1, 5, 100)  # For example, scores from 1 to 5
+                #     # Define the score scale (adjust the range and step as needed)
+                #     score_scale = np.linspace(1, 5, 100)  # For example, scores from 1 to 5
 
-                    # Generate Gaussian distributions for each image
-                    distributions = []
-                    for std, mos in zip(std_devs, mos_scores):
-                        distribution = scipy.stats.norm(loc=mos, scale=std).pdf(score_scale)
-                        normalized_distribution = distribution / distribution.sum()  # Normalize to get probabilities
-                        distributions.append(normalized_distribution)
+                #     # Generate Gaussian distributions for each image
+                #     distributions = []
+                #     for std, mos in zip(std_devs, mos_scores):
+                #         distribution = scipy.stats.norm(loc=mos, scale=std).pdf(score_scale)
+                #         normalized_distribution = distribution / distribution.sum()  # Normalize to get probabilities
+                #         distributions.append(normalized_distribution)
 
-                    # 'distributions' now contains the probability distributions for each image
-                    score=distributions
+                #     # 'distributions' now contains the probability distributions for each image
+                #     score=distributions
 
-                else:
+                # else:
                     std = float(content[-2]) if mos_format == 'mos' else float(content[-2]) / 25.
                     mean = float(content[-1]) if mos_format == 'mos' else float(content[-1]) / 25. + 1
                     score = get_distribution(mos_scale, mean, std)
