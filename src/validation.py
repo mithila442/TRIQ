@@ -61,7 +61,7 @@ if __name__ == '__main__':
     args = {}
     args['n_quality_levels'] = 9
     args['backbone'] = 'vgg16'
-    args['weights'] = r'./train/database/results_triq\triq_conv2D_all/triq_conv2D_all_distribution/2_1.8961_2.0670.h5'
+    args['weights'] = r'./train/database/results_triq\triq_conv2D_all/triq_conv2D_all_distribution/23_1.8076_1.4244.h5'
 
     t_start = time.time()
     val_main(args)

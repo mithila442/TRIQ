@@ -210,10 +210,10 @@ if __name__ == '__main__':
 
     args['initial_epoch'] = 0
 
-    args['lr_base'] = 0.005
+    args['lr_base'] = 0.00005
     args['lr_schedule'] = True
-    args['batch_size'] = 5
-    args['epochs'] = 50
+    args['batch_size'] = 10
+    args['epochs'] = 80
 
     args['image_aug'] = True
     args['weights'] = r'./pretrained_weights/vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5'
