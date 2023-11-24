@@ -11,7 +11,7 @@ class ModelEvaluation:
         self.model = model
         self.image_files = image_files
         self.scores = scores
-        self.using_single_mos = using_single_mos
+        self.using_single_mos = False
         self.imagenet_pretrain = imagenet_pretrain
         self.mos_scales = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9])
 

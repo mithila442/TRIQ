@@ -209,35 +209,11 @@ def get_image_scores_from_two_file_formats(mos_file, file_format, mos_format, us
             image_file = content[0].replace('"', '').lower()
 
             if using_single_mos:
-                score = float(content[-1]) if mos_format == 'mos' else float(content[1]) / 25. + 1
+                score = float(content[-1])
             else:
-                # if file_format == 'TID':
-
-                #     # Load the CSV file
-                #     file_path = '/mnt/data/live_mos.csv'
-                #     data = pd.read_csv(file_path)
-
-                #     # Extract the standard deviation and MOS (or Z-score)
-                #     std_devs = content[-2]  # Replace 'standard_deviation' with the actual column name for std deviation
-                #     mos_scores = content[-1]  # Replace 'MOS' with the actual column name for MOS or Z-score
-
-                #     # Define the score scale (adjust the range and step as needed)
-                #     score_scale = np.linspace(1, 5, 100)  # For example, scores from 1 to 5
-
-                #     # Generate Gaussian distributions for each image
-                #     distributions = []
-                #     for std, mos in zip(std_devs, mos_scores):
-                #         distribution = scipy.stats.norm(loc=mos, scale=std).pdf(score_scale)
-                #         normalized_distribution = distribution / distribution.sum()  # Normalize to get probabilities
-                #         distributions.append(normalized_distribution)
-
-                #     # 'distributions' now contains the probability distributions for each image
-                #     score=distributions
-
-                # else:
-                    std = float(content[-2]) if mos_format == 'mos' else float(content[-2]) / 25.
-                    mean = float(content[-1]) if mos_format == 'mos' else float(content[-1]) / 25. + 1
-                    score = get_distribution(mos_scale, mean, std)
+                std = float(content[-2])
+                mean = float(content[-1])
+                score = get_distribution(mos_scale, mean, std)
 
             image_files[image_file] = score
     return image_files
@@ -277,24 +253,20 @@ def get_image_score_from_groups(folders, image_scores):
 
 
 def get_distribution(score_scale, mean, std, distribution_type='standard'):
-    """
-    Calculate the distribution of scores from MOS and standard distribution, two types of distribution are supported:
-        standard Gaussian and Truncated Gaussian
-    :param score_scale: MOS scale, e.g., [1, 2, 3, 4, 5]
-    :param mean: MOS
-    :param std: standard deviation
-    :param distribution_type: distribution type (standard or truncated)
-    :return: Distribution of scores
-    """
     if distribution_type == 'standard':
         distribution = scipy.stats.norm(loc=mean, scale=std)
     else:
-        distribution = scipy.stats.truncnorm((score_scale[0] - mean) / std, (score_scale[-1] - mean) / std, loc=mean, scale=std)
-    score_distribution = []
-    for s in score_scale:
-        score_distribution.append(distribution.pdf(s))
+        lower, upper = score_scale[0], score_scale[-1]
+        distribution = scipy.stats.truncnorm((lower - mean) / std, (upper - mean) / std, loc=mean, scale=std)
 
-    return score_distribution
+    # Calculate PDF for each score
+    pdf_values = [distribution.pdf(s) for s in score_scale]
+
+    # Normalize PDF values so they sum to 1
+    pdf_sum = sum(pdf_values)
+    normalized_pdf_values = [value / pdf_sum for value in pdf_values]
+
+    return normalized_pdf_values
 
 
 def get_live_images():

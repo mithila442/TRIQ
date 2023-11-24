@@ -20,15 +20,14 @@ def val_main(args):
         imagenet_pretrain = False
 
     val_folders = [
-                    r'./databases/val/koniq_normal',
-                   r'./databases/val/koniq_small',
+                    r'./databases/val/tid']
                    # r'.\database\train\live',
-                   r'./databases/val/live']
+                   #r'./databases/val/live']
 
-    koniq_mos_file = r'./databases/koniq10k_images_scores.csv'
-    live_mos_file = r'./databases/live_mos.csv'
+    tid_mos_file = r'./databases/TID_mos.csv'
+    #live_mos_file = r'./databases/live_mos.csv'
 
-    image_scores = get_image_scores(koniq_mos_file, live_mos_file, using_single_mos=using_single_mos)
+    image_scores = get_image_scores(tid_mos_file, using_single_mos=using_single_mos)
     test_image_file_groups, test_score_groups = get_image_score_from_groups(val_folders, image_scores)
 
     # validation_generator = GroupGenerator(test_image_file_groups,
@@ -43,14 +42,14 @@ def val_main(args):
         test_image_files.extend(test_image_file_group)
         test_scores.extend(test_score_group)
 
-    model = create_triq_model(n_quality_levels=5,
+    model = create_triq_model(n_quality_levels=9,
                               input_shape=(None, None, 3),
                               # transformer_params=[2, 32, 16, 64],
                               backbone=args['backbone'],
                               maximum_position_encoding=193)
     model.load_weights(args['weights'])
 
-    evaluation = ModelEvaluation(model, test_image_files, test_scores, using_single_mos,
+    evaluation = ModelEvaluation(model, test_image_files, test_scores, using_single_mos=using_single_mos,
                                  imagenet_pretrain=imagenet_pretrain)
     plcc, srcc, rmse = evaluation.__evaluation__()
 
@@ -60,9 +59,9 @@ if __name__ == '__main__':
     # tf.config.experimental.set_visible_devices(gpus[1], 'GPU')
 
     args = {}
-    args['n_quality_levels'] = 5
-    args['backbone'] = 'resnet50'
-    args['weights'] = r'./train/database/results_triq/triq_conv2D_all/triq_conv2D_all_distribution/3_1.4581_1.4637.h5'
+    args['n_quality_levels'] = 9
+    args['backbone'] = 'vgg16'
+    args['weights'] = r'./train/database/results_triq\triq_conv2D_all/triq_conv2D_all_distribution/41_1.0962_1.9202.h5'
 
     t_start = time.time()
     val_main(args)
