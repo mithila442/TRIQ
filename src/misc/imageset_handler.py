@@ -11,8 +11,8 @@ import glob
 import scipy.stats
 import matplotlib.pyplot as plt
 import scipy.stats
-tid_mos_file = r'./databases/tid_mos.csv'
-live_mos_file = r'./databases/live_mos.csv'
+tid_mos_file = r'./databases/TID_mos.csv'
+#live_mos_file = r'./databases/live_mos.csv'
 
 def si_image(image):
     """
@@ -150,22 +150,22 @@ def draw_train_val_mos_hist():
     Draw the histogram of MOS in the train and val sets
     :return:
     """
-    train_folders = [r'./databases/train/tid',
+    train_folders = [r'./databases/train/tid']
                      # r'.\database\train\koniq_small',
-                     r'./databases/train/live']
-    val_folders = [r'./databases/val/tid',
+                     #r'./databases/train/live']
+    val_folders = [r'./databases/val/tid']
                    # r'.\database\val\koniq_small',
-                   r'./databases/train/live']
+                   #r'./databases/train/live']
 
-    tid_mos_file = r'./databases/tid_mos.csv'
-    live_mos_file = r'./databases/live_mos.csv'
-    image_scores = get_image_scores(tid_mos_file, live_mos_file)
+    tid_mos_file = r'./databases/TID_mos.csv'
+    #live_mos_file = r'./databases/live_mos.csv'
+    image_scores = get_image_scores(tid_mos_file)
     train_scores = get_scores(train_folders, image_scores)
     val_scores = get_scores(val_folders, image_scores)
 
     plt.figure()
     plt.subplot(211)
-    bins = np.linspace(1, 5, 100)
+    bins = np.linspace(1, 9, 100)
     plt.hist(train_scores, bins=bins, alpha=0.5, rwidth=0.95, color='skyblue', label='Training set')
     plt.xlim(1, 5)
     plt.hist(val_scores, bins=bins, alpha=1., rwidth=0.95, label='Testing set')
@@ -191,7 +191,7 @@ def draw_train_val_mos_hist():
     plt.show()
 
 
-def get_image_scores_from_two_file_formats(mos_file, file_format, mos_format, using_single_mos=True):
+def get_image_scores_from_two_file_formats(mos_file, file_format, mos_format, using_single_mos=False):
     """
     Get single MOS or distribution of scores from mos files with two format: koniq and live
     :param mos_file: mos file containing image path, distribution or std, and MOS
@@ -200,7 +200,7 @@ def get_image_scores_from_two_file_formats(mos_file, file_format, mos_format, us
     :param using_single_mos: single MOS or distribution
     :return: dict {image_path: MOS or distribution}
     """
-    mos_scale = [1, 2, 3, 4, 5]
+    mos_scale = [1, 2, 3, 4, 5, 6, 7, 8, 9]
     image_files = {}
     with open(mos_file, 'r+') as f:
         lines = f.readlines()
@@ -243,10 +243,10 @@ def get_image_scores_from_two_file_formats(mos_file, file_format, mos_format, us
     return image_files
 
 
-def get_image_scores(koniq_mos_file, live_mos_file, using_single_mos=True):
+def get_image_scores(tid_mos_file, using_single_mos=False):
     image_scores_tid = get_image_scores_from_two_file_formats(tid_mos_file, 'tid', 'mos', using_single_mos)
-    image_scores_live = get_image_scores_from_two_file_formats(live_mos_file, 'live', 'z-score', using_single_mos)
-    return {**image_scores_tid, **image_scores_live}
+    #image_scores_live = get_image_scores_from_two_file_formats(live_mos_file, 'live', 'z-score', using_single_mos)
+    return {**image_scores_tid}
 
 
 def get_image_score_from_groups(folders, image_scores):

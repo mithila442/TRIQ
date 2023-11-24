@@ -13,7 +13,7 @@ class ModelEvaluationIQGenerator(Callback):
         self.val_generator = val_generator
         self.evaluation_generator = evaluation_generator
         self.using_single_mos = using_single_mos
-        self.mos_scales = np.array([1, 2, 3, 4, 5])
+        self.mos_scales = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9])
 
     def __get_prediction_mos(self, image):
         prediction = self.model.predict(np.expand_dims(image, axis=0))
@@ -65,4 +65,3 @@ class ModelEvaluationIQGenerator(Callback):
             if epoch % 10 == 0:
                 plcc_10th, srcc_10th, rmse_10th, mad_10th = self.__evaluation__(self.evaluation_generator)
                 print('\nEpoch {}: PLCC: {}, SRCC: {}, RMSE: {}, MAD: {}'.format(epoch, plcc_10th, srcc_10th, rmse_10th, mad_10th))
-

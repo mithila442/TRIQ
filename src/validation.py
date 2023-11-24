@@ -20,14 +20,14 @@ def val_main(args):
         imagenet_pretrain = False
 
     val_folders = [
-                    r'./databases/val/tid',
+                    r'./databases/val/tid']
                    # r'.\database\train\live',
-                   r'./databases/val/live']
+                   #r'./databases/val/live']
 
-    tid_mos_file = r'./databases/tid_mos.csv'
-    live_mos_file = r'./databases/live_mos.csv'
+    tid_mos_file = r'./databases/TID_mos.csv'
+    #live_mos_file = r'./databases/live_mos.csv'
 
-    image_scores = get_image_scores(tid_mos_file, live_mos_file, using_single_mos=using_single_mos)
+    image_scores = get_image_scores(tid_mos_file, using_single_mos=False)
     test_image_file_groups, test_score_groups = get_image_score_from_groups(val_folders, image_scores)
 
     # validation_generator = GroupGenerator(test_image_file_groups,
@@ -42,7 +42,7 @@ def val_main(args):
         test_image_files.extend(test_image_file_group)
         test_scores.extend(test_score_group)
 
-    model = create_triq_model(n_quality_levels=5,
+    model = create_triq_model(n_quality_levels=9,
                               input_shape=(None, None, 3),
                               # transformer_params=[2, 32, 16, 64],
                               backbone=args['backbone'],
@@ -59,9 +59,9 @@ if __name__ == '__main__':
     # tf.config.experimental.set_visible_devices(gpus[1], 'GPU')
 
     args = {}
-    args['n_quality_levels'] = 5
-    args['backbone'] = 'resnet50'
-    args['weights'] = r'./train/database/results_triq\triq_conv2D_all/triq_conv2D_all_distribution/1_1.2914_1.3634.h5'
+    args['n_quality_levels'] = 9
+    args['backbone'] = 'vgg16'
+    args['weights'] = r'./train/database/results_triq\triq_conv2D_all/triq_conv2D_all_distribution/2_1.8961_2.0670.h5'
 
     t_start = time.time()
     val_main(args)

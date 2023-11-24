@@ -66,7 +66,7 @@ def train_main(args):
         with strategy.scope():
             # Everything that creates variables should be under the strategy scope.
             # In general this is only model construction & `compile()`.
-            model = create_triq_model(n_quality_levels=5,
+            model = create_triq_model(n_quality_levels=9,
                                       input_shape=(None, None, 3),
                                       backbone=args['backbone'],
                                       maximum_position_encoding=193)
@@ -74,7 +74,7 @@ def train_main(args):
             model.compile(loss=loss, optimizer=optimizer, metrics=[metrics])
 
     else:
-        model = create_triq_model(n_quality_levels=5,
+        model = create_triq_model(n_quality_levels=9,
                                   input_shape=(None, None, 3),
                                   backbone=args['backbone'],
                                   maximum_position_encoding=193)
@@ -87,7 +87,7 @@ def train_main(args):
     imagenet_pretrain = True
 
     # Define train and validation data
-    image_scores = get_image_scores(args['tid_mos_file'], args['live_mos_file'], using_single_mos=using_single_mos)
+    image_scores = get_image_scores(args['tid_mos_file'], using_single_mos=False)
     train_image_file_groups, train_score_groups = get_image_score_from_groups(args['train_folders'], image_scores)
     train_generator = GroupGenerator(train_image_file_groups,
                                      train_score_groups,
@@ -153,8 +153,8 @@ def train_main(args):
     model.save(os.path.join(result_folder, model_name + '.h5'))
     #plot_history(model_history, result_folder, model_name)
 
-    best_weights_file = identify_best_weights(result_folder, model_history.history, callbacks[3].best)
-    remove_non_best_weights(result_folder, [best_weights_file])
+    # best_weights_file = identify_best_weights(result_folder, model_history.history, callbacks[3].best)
+    # remove_non_best_weights(result_folder, [best_weights_file])
 
     # do fine-tuning
     if args['do_finetune'] and best_weights_file:
@@ -184,8 +184,8 @@ def train_main(args):
                                   initial_epoch=args['initial_epoch'],
                                   )
 
-        best_weights_file_finetune = identify_best_weights(result_folder, finetune_model_history.history, callbacks[3].best)
-        remove_non_best_weights(result_folder, [best_weights_file, best_weights_file_finetune])
+        # best_weights_file_finetune = identify_best_weights(result_folder, finetune_model_history.history, callbacks[3].best)
+        # remove_non_best_weights(result_folder, [best_weights_file, best_weights_file_finetune])
 
 
 if __name__ == '__main__':
@@ -195,28 +195,28 @@ if __name__ == '__main__':
     args['gpu'] = 1
 
     args['result_folder'] = r'./train/database/results_triq\triq_conv2D_all'
-    args['n_quality_levels'] = 5
+    args['n_quality_levels'] = 9
 
-    args['backbone'] = 'resnet50'
+    args['backbone'] = 'vgg16'
 
     args['train_folders'] = [
-        r'./databases/train/tid',
-        r'./databases/train/live']
+        r'./databases/train/tid']
+        #r'./databases/train/live']
     args['val_folders'] = [
-        r'./databases/val/tid',
-        r'./databases/val/live']
-    args['tid_mos_file'] = r'./databases/tid_mos.csv'
-    args['live_mos_file'] = r'./databases/live_mos.csv'
+        r'./databases/val/tid']
+        #r'./databases/val/live']
+    args['tid_mos_file'] = r'./databases/TID_mos.csv'
+    #args['live_mos_file'] = r'./databases/live_mos.csv'
 
     args['initial_epoch'] = 0
 
-    args['lr_base'] = 0.0005
+    args['lr_base'] = 0.001
     args['lr_schedule'] = True
     args['batch_size'] = 10
-    args['epochs'] = 80
+    args['epochs'] = 50
 
     args['image_aug'] = True
-    args['weights'] = r'./pretrained_weights/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
+    args['weights'] = r'./pretrained_weights/vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5'
     # args['weights'] = r'resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
 
     #args['do_finetune'] = True

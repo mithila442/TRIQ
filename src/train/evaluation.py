@@ -13,7 +13,7 @@ class ModelEvaluation:
         self.scores = scores
         self.using_single_mos = using_single_mos
         self.imagenet_pretrain = imagenet_pretrain
-        self.mos_scales = np.array([1, 2, 3, 4, 5])
+        self.mos_scales = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9])
 
     def __get_prediction_mos(self, image):
         prediction = self.model.predict(np.expand_dims(image, axis=0))
@@ -33,16 +33,16 @@ class ModelEvaluation:
         for image_file, score in zip(self.image_files, self.scores):
             image = Image.open(image_file)
             image = np.asarray(image, dtype=np.float32)
-            if self.imagenet_pretrain: # image normalization using TF approach
-                image /= 127.5
-                image -= 1.
-            else: # Image normalization by subtracting mean and dividing std
-                image[:, :, 0] -= 117.27205081970828
-                image[:, :, 1] -= 106.23294835284031
-                image[:, :, 2] -= 94.40750328714887
-                image[:, :, 0] /= 59.112836751661085
-                image[:, :, 1] /= 55.65498543815568
-                image[:, :, 2] /= 54.9486100975773
+            # if self.imagenet_pretrain: # image normalization using TF approach
+            #     image /= 127.5
+            #     image -= 1.
+            # else: # Image normalization by subtracting mean and dividing std
+            #     image[:, :, 0] -= 117.27205081970828
+            #     image[:, :, 1] -= 106.23294835284031
+            #     image[:, :, 2] -= 94.40750328714887
+            #     image[:, :, 0] /= 59.112836751661085
+            #     image[:, :, 1] /= 55.65498543815568
+            #     image[:, :, 2] /= 54.9486100975773
 
             if self.using_single_mos:
                 prediction = self.__get_prediction_mos(image)

@@ -122,8 +122,8 @@ class TriQImageQualityTransformer(Model):
         d_model,
         num_heads,
         mlp_dim,
-        dropout=0.1,
-        n_quality_levels=5,
+        dropout=0.2,
+        n_quality_levels=9,
         maximum_position_encoding=257,
         vis=False
     ):

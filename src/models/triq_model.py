@@ -40,7 +40,7 @@ def create_triq_model(n_quality_levels,
 
     C5 = backbone_model.output
 
-    dropout_rate = 0.1
+    dropout_rate = 0.2
 
     transformer = TriQImageQualityTransformer(
         num_layers=transformer_params[0],
@@ -71,4 +71,4 @@ if __name__ == '__main__':
     # input_shape = [500, 500, 3]
     # input_shape = [384, 512, 3]
     # model = cnn_transformer(n_quality_levels=5, input_shape=input_shape, backbone='vgg16')
-    model = create_triq_model(n_quality_levels=5, input_shape=input_shape, backbone='resnet50')
+    model = create_triq_model(n_quality_levels=9, input_shape=input_shape, backbone='resnet50')

@@ -14,7 +14,7 @@ class ModelEvaluationIQ(Callback):
         self.scores = scores
         self.using_single_mos = using_single_mos
         self.imagenet_pretrain = imagenet_pretrain
-        self.mos_scales = np.array([1, 2, 3, 4, 5])
+        self.mos_scales = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9])
         # self.live_images, self.live_scores = ImageProvider.generate_live_images()
 
     def __get_prediction_mos(self, image):
@@ -36,18 +36,18 @@ class ModelEvaluationIQ(Callback):
                 image = np.asarray(image.resize((target_height, target_width)), dtype=np.float32)
             else:
                 image = np.asarray(image, dtype=np.float32)
-            if self.imagenet_pretrain:
-                # ImageNnet normalization
-                image /= 127.5
-                image -= 1.
-            else:
-                # Normalization based on the combined database consisting of KonIQ-10k and LIVE-Wild datasets
-                image[:, :, 0] -= 117.27205081970828
-                image[:, :, 1] -= 106.23294835284031
-                image[:, :, 2] -= 94.40750328714887
-                image[:, :, 0] /= 59.112836751661085
-                image[:, :, 1] /= 55.65498543815568
-                image[:, :, 2] /= 54.9486100975773
+            # if self.imagenet_pretrain:
+            #     # ImageNnet normalization
+            #     image /= 127.5
+            #     image -= 1.
+            # else:
+            #     # Normalization based on the combined database consisting of KonIQ-10k and LIVE-Wild datasets
+            #     image[:, :, 0] -= 117.27205081970828
+            #     image[:, :, 1] -= 106.23294835284031
+            #     image[:, :, 2] -= 94.40750328714887
+            #     image[:, :, 0] /= 59.112836751661085
+            #     image[:, :, 1] /= 55.65498543815568
+            #     image[:, :, 2] /= 54.9486100975773
 
             if self.using_single_mos:
                 mos_scores.append(score)

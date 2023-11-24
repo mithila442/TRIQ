@@ -139,5 +139,5 @@ def VGG16(inputs, return_last_map=False):
 
 
 if __name__ == '__main__':
-    input_tensor = layers.Input(shape=(None, None, 3))
+    input_tensor = layers.Input(shape=(512, 384, 3))
     model = VGG16(input_tensor)
