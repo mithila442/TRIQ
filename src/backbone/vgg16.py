@@ -129,6 +129,9 @@ def VGG16(inputs, return_last_map=False):
     x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool')(x)
     outputs.append(x)
 
+    x = layers.Conv2D(
+        32, (1, 1), activation='relu', padding='same', name='feature_projection')(x)
+    
     if return_last_map:
         model = training.Model(inputs, x, name='vgg16')
     else:
